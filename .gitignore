@@ -1,0 +1,9 @@
+# Build artifacts.
+build/
+debug/
+
+# VS Code workspace settings.
+.vscode/
+
+# User-local settings.
+*.user

@@ -1,6 +1,6 @@
 /** Implements std::tuple element taking.
  *
- * @file        take.h
+ * @file        tuple/take.h
  * @author      Karl F. A. Friebel (karl.friebel@friebelnet.de)
  *
  * @version     0.1

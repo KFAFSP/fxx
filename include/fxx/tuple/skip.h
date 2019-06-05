@@ -1,6 +1,6 @@
 /** Implements std::tuple element skipping.
  *
- * @file        skip.h
+ * @file        tuple/skip.h
  * @author      Karl F. A. Friebel (karl.friebel@friebelnet.de)
  *
  * @version     0.1

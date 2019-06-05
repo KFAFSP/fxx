@@ -1,6 +1,6 @@
 /** Implements std::tuple slicing.
  *
- * @file        slice.h
+ * @file        tuple/slice.h
  * @author      Karl F. A. Friebel (karl.friebel@friebelnet.de)
  *
  * @version     0.1

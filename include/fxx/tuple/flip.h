@@ -1,6 +1,6 @@
 /** Implements std::tuple flipping.
  *
- * @file        flip.h
+ * @file        tuple/flip.h
  * @author      Karl F. A. Friebel (karl.friebel@friebelnet.de)
  *
  * @version     0.1

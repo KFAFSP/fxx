@@ -1,6 +1,6 @@
 /** Implements std::tuple mapping.
  *
- * @file        map.h
+ * @file        tuple/map.h
  * @author      Karl F. A. Friebel (karl.friebel@friebelnet.de)
  *
  * @version     0.1

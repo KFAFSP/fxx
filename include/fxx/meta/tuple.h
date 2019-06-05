@@ -33,7 +33,7 @@
  *   tuple_filter_t ... Filter a std::tuple based on type.
  * @endcode
  *
- * @file        tuple.h
+ * @file        meta/tuple.h
  *
  * @author      Karl F. A. Friebel (karl.friebel@friebelnet.de)
  *

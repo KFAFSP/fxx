@@ -1,6 +1,6 @@
 /** Implements std::tuple picking.
  *
- * @file        pick.h
+ * @file        tuple/pick.h
  * @author      Karl F. A. Friebel (karl.friebel@friebelnet.de)
  *
  * @version     0.1

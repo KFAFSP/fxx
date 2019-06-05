@@ -1,6 +1,6 @@
 /** Implements std::tuple duplication.
  *
- * @file        dup.h
+ * @file        tuple/dup.h
  * @author      Karl F. A. Friebel (karl.friebel@friebelnet.de)
  *
  * @version     0.1

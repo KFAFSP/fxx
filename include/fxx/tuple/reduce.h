@@ -1,6 +1,6 @@
 /** Implements std::tuple reduction.
  *
- * @file        reduce.h
+ * @file        tuple/reduce.h
  * @author      Karl F. A. Friebel (karl.friebel@friebelnet.de)
  *
  * @version     0.1

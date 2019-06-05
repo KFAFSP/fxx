@@ -6,7 +6,7 @@
  * The types declared in this file can be used to manipulate these sequences to achieve complex
  * mappings independent of the container access functions.
  *
- * @file        indices.h
+ * @file        meta/indices.h
  * @author      Karl F. A. Friebel (karl.friebel@friebelnet.de)
  *
  * @version     0.4

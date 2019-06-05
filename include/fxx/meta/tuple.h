@@ -20,9 +20,9 @@
  *     tuple_flip_t ... Flip (reverse the order of) a std::tuple type.
  *     tuple_pick_t ... Pick (select elements) from a std::tuple type.
  *      tuple_dup_t ... Duplicate (and concatenate) a std::tuple type.
- *     tuple_skip_t ...
- *     tuple_take_t ...
- *    tuple_slice_t ...
+ *     tuple_skip_t ... Skip elements in a std::tuple type.
+ *     tuple_take_t ... Take elements from a std::tuple type.
+ *    tuple_slice_t ... Obtain a sub-range from a std::tuple type.
  *
  * Transforming:
  *
@@ -30,6 +30,7 @@
  *   tuple_reduce_t ... Reduce a std::tuple type.
  *    tuple_foldl_t ... Fold a std::tuple type from the left.
  *    tuple_foldr_t ... Fold a std::tuple type from the right.
+ *   tuple_filter_t ... Filter a std::tuple based on type.
  * @endcode
  *
  * @file        tuple.h

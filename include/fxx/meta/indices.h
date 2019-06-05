@@ -32,9 +32,21 @@ namespace fxx { namespace meta {
 /// @cond
 namespace detail {
 
+// Dispatch case.
+template<template<std::size_t...> class, class>
+struct apply_index_sequence_impl {};
+
+// Variadic case.
+template<template<std::size_t...> class Target, std::size_t... Ns>
+struct apply_index_sequence_impl<Target, std::index_sequence<Ns...>> {
+    using type = Target<Ns...>;
+};
+
+// Dispatch case.
 template<template<std::size_t> class, class>
 struct map_index_sequence_impl {};
 
+// Variadic case.
 template<template<std::size_t> class Fn, std::size_t... Ns>
 struct map_index_sequence_impl<Fn, std::index_sequence<Ns...>> {
     using type = std::index_sequence<Fn<Ns>::value...>;
@@ -54,6 +66,23 @@ struct scale_index_impl {
 
 } // namespace detail
 /// @endcond
+
+/** Apply elements of an std::index_sequence to a template.
+ *
+ * @code{.unparsed}
+ * apply_index_sequence_t<T, s> = T<s_0, s_1, ... s_(N-1)>
+ *
+ *      where s is the input sequence.
+ *        and N is the length of the input sequence.
+ * @endcode
+ *
+ * @warning Behavior is undefined when @p Seq is not an std::index_sequence.
+ *
+ * @tparam  Target  Target template.
+ * @tparam  Seq     Input sequence.
+ */
+template<template<std::size_t...> class Target, class Seq>
+using apply_index_sequence_t = typename detail::apply_index_sequence_impl<Target, Seq>::type;
 
 /** Map the elements of an std::index_sequence.
  *
@@ -148,6 +177,22 @@ using make_index_range = shift_index_sequence_t<Start, std::make_index_sequence<
 #ifdef FXX_TEST_STATIC
 
 namespace fxx { namespace meta {
+
+// apply_index_sequence_t
+static_assert(
+    std::is_same_v<
+        std::index_sequence<>,
+        apply_index_sequence_t<std::index_sequence, std::make_index_sequence<0>>
+    >,
+    "fxx::meta::apply_index_sequence_t: Empty case"
+);
+static_assert(
+    std::is_same_v<
+        std::index_sequence<1, 3, 9, 4>,
+        apply_index_sequence_t<std::index_sequence, std::index_sequence<1, 3, 9, 4>>
+    >,
+    "fxx::meta::apply_index_sequence_t: Regular case"
+);
 
 // map_index_sequence_t
 

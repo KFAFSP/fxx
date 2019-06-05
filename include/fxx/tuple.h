@@ -16,8 +16,11 @@
 
 #include <fxx/tuple/dup.h>
 #include <fxx/tuple/flip.h>
+#include <fxx/tuple/map.h>
 #include <fxx/tuple/pick.h>
+#include <fxx/tuple/reduce.h>
 #include <fxx/tuple/skip.h>
+#include <fxx/tuple/slice.h>
 #include <fxx/tuple/take.h>
 
 namespace fxx {

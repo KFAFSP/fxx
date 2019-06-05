@@ -9,6 +9,7 @@ add_executable(fxx-test
     src/tuple/flip.cpp
     src/tuple/map.cpp
     src/tuple/pick.cpp
+    src/tuple/reduce.cpp
     src/tuple/skip.cpp
     src/tuple/slice.cpp
     src/tuple/take.cpp

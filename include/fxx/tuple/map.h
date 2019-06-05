@@ -23,7 +23,7 @@ namespace fxx { namespace tuple {
 namespace detail {
 
 template<class Fn, class Tuple, std::size_t... Ns>
-static constexpr auto map_impl(Fn&& fn, Tuple&& tuple, std::index_sequence<Ns...>) noexcept {
+static constexpr auto map_impl(Fn&& fn, Tuple&& tuple, std::index_sequence<Ns...>) {
     return std::tuple<
         decltype(fn(std::declval<std::tuple_element_t<Ns, Tuple>>()))...
     >(
@@ -39,7 +39,7 @@ static constexpr auto map_impl(Fn&& fn, Tuple&& tuple, std::index_sequence<Ns...
  */
 struct map_f {
     template<class Fn, class Tuple>
-    constexpr auto operator()(Fn&& fn, Tuple&& tuple) noexcept {
+    constexpr auto operator()(Fn&& fn, Tuple&& tuple) {
         return detail::map_impl(
             std::forward<Fn>(fn),
             std::forward<Tuple>(tuple),
@@ -61,7 +61,7 @@ struct map_f {
  * @return  Result tuple.
  */
 template<class Fn, class Tuple>
-constexpr auto map(Fn&& fn, Tuple&& tuple) noexcept {
+constexpr auto map(Fn&& fn, Tuple&& tuple) {
     return map_f{}(std::forward<Fn>(fn), std::forward<Tuple>(tuple));
 }
 

@@ -14,6 +14,7 @@
 #define FXX_META_H
 #pragma once
 
+#include <fxx/meta/indices.h>
 #include <fxx/meta/tuple.h>
 
 namespace fxx {

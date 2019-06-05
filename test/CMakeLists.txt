@@ -8,6 +8,8 @@ add_executable(fxx-test
     src/tuple/dup.cpp
     src/tuple/flip.cpp
     src/tuple/pick.cpp
+    src/tuple/skip.cpp
+    src/tuple/take.cpp
 )
 target_link_libraries(fxx-test
     PRIVATE

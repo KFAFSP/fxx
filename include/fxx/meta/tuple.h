@@ -769,4 +769,5 @@ static_assert(
 
 } } // namespace fxx::meta
 
+#undef FXX_TEST_STATIC
 #endif

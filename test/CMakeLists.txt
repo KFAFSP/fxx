@@ -2,6 +2,7 @@ find_package(Catch2 REQUIRED)
 
 # Add the test executable target.
 add_executable(fxx-test
+    src/cxx.cpp
     src/main.cpp
     src/meta.cpp
 

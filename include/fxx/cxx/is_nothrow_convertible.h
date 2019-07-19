@@ -81,6 +81,8 @@ static constexpr bool is_nothrow_convertible_v = is_nothrow_convertible<From, To
 #ifdef FXX_TEST_STATIC
 #ifdef FXX_CXX_IS_NOTHROW_CONVERTIBLE
 
+namespace fxx_cxx_is_nothrow_convertible_h {
+
 struct X { X(int) noexcept {} };
 struct Y { Y(X) {} };
 
@@ -97,6 +99,7 @@ static_assert(
     "std::is_nothrow_convertible_v: Detected noexcept(false) conversion"
 );
 
+} // namespace fxx_cxx_is_nothrow_convertible_h
+
 #endif
-#undef FXX_TEST_STATIC
 #endif

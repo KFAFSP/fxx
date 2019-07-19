@@ -51,7 +51,7 @@ struct detect_impl<Default, std::void_t<Op<Args...>>, Op, Args...> {
 
 } // namespace detail
 
-/** An std::bool_constant that indicates whether a template instantiation is valid.
+/** An std::bool_constant indicating whether a template instantiation is valid.
  *
  * Can be used to detect whether certain expressions are valid by use of a template alias that
  * evaluates to the expression's decltype.
@@ -101,8 +101,8 @@ using detected_or_t = typename detail::detect_impl<Default, void, Op, Args...>::
 template <template<class...> class Op, class... Args>
 using detected_t = detected_or_t<detail::nonesuch, Op, Args...>;
 
-/** An std::bool_constant that indicates whether a template instantiation is valid and evaluates to
- * the given type.
+/** An std::bool_constant indicating whether a template instantiation is valid and evaluates to the
+ * given type.
  *
  * See std::is_same and detected_t for more details.
  *
@@ -125,8 +125,8 @@ using is_detected_exact = std::is_same<detected_t<Op, Args...>, T>;
 template<class T, template<class...> class Op, class... Args>
 static constexpr bool is_detected_exact_v = is_detected_exact<T, Op, Args...>::value;
 
-/** An std::bool_constant that indicates whether a template instantiation is valid and evalutes to
- * a type that is convertible to the given type.
+/** An std::bool_constant indicating whether a template instantiation is valid and evalutes to a
+ * type that is convertible to the given type.
  *
  * See std::is_convertible and detected_t for more details.
  *
@@ -149,8 +149,8 @@ using is_detected_convertible = std::is_convertible<detected_t<Op, Args...>, To>
 template<class To, template<class...> class Op, class... Args>
 static constexpr bool is_detected_convertible_v = is_detected_convertible<To, Op, Args...>::value;
 
-/** An std::bool_constant that indicates whether a template instantiation is valid and evalutes to
- * a type that is nothrow convertible to the given type.
+/** An std::bool_constant indicating whether a template instantiation is valid and evalutes to a
+ * type that is nothrow convertible to the given type.
  *
  * See std::is_nothrow_convertible and detected_t for more details.
  *
@@ -187,6 +187,8 @@ static constexpr bool is_detected_nothrow_convertible_v =
 #include <utility>
 // std::declval
 
+namespace fxx_meta_detect_h {
+
 template<class T>
 using it_member_t = decltype(std::declval<T>().it);
 
@@ -201,57 +203,54 @@ struct has_char_it { char it; };
 struct has_X_it { X x; };
 struct has_Y_it { Y x; };
 
-namespace fxx { namespace meta {
-
 static_assert(
-    !is_detected_v<it_member_t, has_no_it>,
+    !fxx::meta::is_detected_v<it_member_t, has_no_it>,
     "fxx::meta::is_detected_v: Not detected"
 );
 static_assert(
-    is_detected_v<it_member_t, has_int_it>,
+    fxx::meta::is_detected_v<it_member_t, has_int_it>,
     "fxx::meta::is_detected_v: Detected"
 );
 
 static_assert(
-    !is_detected_exact_v<int, it_member_t, has_no_it>,
+    !fxx::meta::is_detected_exact_v<int, it_member_t, has_no_it>,
     "fxx::meta::is_detected_exact_v: Not detected"
 );
 static_assert(
-    !is_detected_exact_v<int, it_member_t, has_char_it>,
+    !fxx::meta::is_detected_exact_v<int, it_member_t, has_char_it>,
     "fxx::meta::is_detected_exact_v: Wrong type detected"
 );
 static_assert(
-    is_detected_exact_v<int, it_member_t, has_int_it>,
+    fxx::meta::is_detected_exact_v<int, it_member_t, has_int_it>,
     "fxx::meta::is_detected_exact_v: Exact type detected"
 );
 
 static_assert(
-    !is_detected_convertible_v<int, it_member_t, has_no_it>,
+    !fxx::meta::is_detected_convertible_v<int, it_member_t, has_no_it>,
     "fxx::meta::is_detected_convertible_v: Not detected"
 );
 static_assert(
-    !is_detected_convertible_v<int, it_member_t, has_X_it>,
+    !fxx::meta::is_detected_convertible_v<int, it_member_t, has_X_it>,
     "fxx::meta::is_detected_convertible_v: Non-convertible detected"
 );
 static_assert(
-    is_detected_convertible_v<int, it_member_t, has_char_it>,
+    fxx::meta::is_detected_convertible_v<int, it_member_t, has_char_it>,
     "fxx::meta::is_detected_convertible_v: Convertible detected"
 );
 static_assert(
-    is_detected_convertible_v<int, it_member_t, has_int_it>,
+    fxx::meta::is_detected_convertible_v<int, it_member_t, has_int_it>,
     "fxx::meta::is_detected_convertible_v: Exact type detected"
 );
 
 static_assert(
-    is_detected_nothrow_convertible_v<int, it_member_t, has_char_it>,
+    fxx::meta::is_detected_nothrow_convertible_v<int, it_member_t, has_char_it>,
     "fxx::meta::is_detected_nothrow_convertible_v: No-throw convertible detected"
 );
 static_assert(
-    !is_detected_nothrow_convertible_v<int, it_member_t, has_Y_it>,
+    !fxx::meta::is_detected_nothrow_convertible_v<int, it_member_t, has_Y_it>,
     "fxx::meta::is_detected_nothrow_convertible_v: Throwing conversion detected"
 );
 
-} } // namespace fxx::meta
+} // namespace fxx_meta_detect_h
 
-#undef FXX_TEST_STATIC
 #endif

@@ -93,7 +93,7 @@ FXX_META_OP_BINOP_T(multiplies, *);
 FXX_META_OP_BINOP_T(divides, /);
 FXX_META_OP_BINOP_T(modulus, %);
 FXX_META_OP_UNOP_T(negate, -);
-FXX_META_OP_UNOP_T(unp, +);
+FXX_META_OP_UNOP_T(promote, +);
 
 // Comparisons.
 

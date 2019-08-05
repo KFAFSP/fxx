@@ -37,6 +37,9 @@
 #define FXX_META_FUNCTIONAL_H
 #pragma once
 
+#include <type_traits>
+// std::(conditional_t, false_type, true_type)
+
 namespace fxx { namespace meta {
 
 /** Functor type that always returns the first argument.
@@ -142,6 +145,104 @@ struct partial {
     using type = Target<First..., Last...>;
 };
 
+namespace detail {
+
+// Dispatch case.
+template<template<class> class Pred, class... Args>
+struct any_impl {};
+
+// Trivial case.
+template<template<class> class Pred>
+struct any_impl<Pred> : std::false_type {};
+
+// Recursive case.
+template<template<class> class Pred, class Head, class... Tail>
+struct any_impl<Pred, Head, Tail...>
+: std::conditional_t<Pred<Head>::value, std::true_type, any_impl<Pred, Tail...>> {};
+
+} // namespace detail
+
+/** A std::bool_constant indicating whether a predicate is matched by any argument.
+ *
+ * An empty list of arguments never matches any predicate.
+ *
+ * @code{.unparsed}
+ * any<P, T_0, T_1, ..., T_(N-1)> <=> Ex. i el [0, N): P<T_i>::value = true
+ *
+ *      where P is the predicate
+ *        and T are the input arguments
+ *        and T_i is the i-th input argument
+ *        and N is the number of input arguments
+ * @endcode
+ *
+ * @warning Behavior is undefined when @p Pred instances do not provide a
+ *          `static constexpr bool value`.
+ *
+ * @tparam  Pred    Predicate type.
+ * @tparam  Args    Arguments.
+ */
+template<template<class> class Pred, class... Args>
+using any = detail::any_impl<Pred, Args...>;
+
+/** A compile-time constant indicating whether a predicate is matched by any argument.
+ *
+ * See any for more details.
+ *
+ * @tparam  Pred    Predicate type.
+ * @tparam  Args    Arguments.
+ */
+template<template<class> class Pred, class... Args>
+static constexpr bool any_v = any<Pred, Args...>::value;
+
+namespace detail {
+
+// Dispatch case.
+template<template<class> class Pred, class... Args>
+struct all_impl {};
+
+// Trivial case.
+template<template<class> class Pred>
+struct all_impl<Pred> : std::true_type {};
+
+// Recursive case.
+template<template<class> class Pred, class Head, class... Tail>
+struct all_impl<Pred, Head, Tail...>
+: std::conditional_t<Pred<Head>::value, all_impl<Pred, Tail...>, std::false_type> {};
+
+} // namespace detail
+
+/** A std::bool_constant indicating whether a predicate is matched by all arguments.
+ *
+ * An empty list of arguments matches all predicates.
+ *
+ * @code{.unparsed}
+ * all<P, T_0, T_1, ..., T_(N-1)> <=> A. i el [0, N): P<T_i>::value = true
+ *
+ *      where P is the predicate
+ *        and T are the input arguments
+ *        and T_i is the i-th input argument
+ *        and N is the number of input arguments
+ * @endcode
+ *
+ * @warning Behavior is undefined when @p Pred instances do not provide a
+ *          `static constexpr bool value`.
+ *
+ * @tparam  Pred    Predicate type.
+ * @tparam  Args    Arguments.
+ */
+template<template<class> class Pred, class... Args>
+using all = detail::all_impl<Pred, Args...>;
+
+/** A compile-time constant indicating whether a predicate is matched by all arguments.
+ *
+ * See all for more details.
+ *
+ * @tparam  Pred    Predicate type.
+ * @tparam  Args    Arguments.
+ */
+template<template<class> class Pred, class... Args>
+static constexpr bool all_v = all<Pred, Args...>::value;
+
 } } // namespace fxx::meta
 
 #endif
@@ -159,26 +260,31 @@ struct partial {
 
 namespace fxx { namespace meta {
 
+// identity
 static_assert(
     std::is_same_v<int, identity<int, bool>>,
     "fxx::meta::identity: Regular case"
 );
 
+// tautology
 static_assert(
     tautology<int, bool>::value,
     "fxx::meta::tautology: Regular case"
 );
 
+// contradiction
 static_assert(
     !contradiction<int, bool>::value,
     "fxx::meta::contradiction: Regular case"
 );
 
+// constant
 static_assert(
     std::is_same_v<int, typename constant<int>::template type<bool>>,
     "fxx::meta::constant: Regular case"
 );
 
+// bind
 static_assert(
     std::is_same_v<
         std::tuple<std::is_signed<int>, int>,
@@ -187,12 +293,33 @@ static_assert(
     "fxx::meta::bind: Regular case"
 );
 
+// partial
 static_assert(
     std::is_same_v<
         std::tuple<int, bool>,
         typename partial<std::tuple, int>::template type<bool>
     >,
     "fxx::meta::partial: Regular case"
+);
+
+// any_v
+static_assert(
+    !any_v<tautology>,
+    "fxx::meta::any: Empty case"
+);
+static_assert(
+    any_v<std::is_signed, ushort, ushort, short, ushort>,
+    "fxx::meta::any: Regular case"
+);
+
+// all_v
+static_assert(
+    all_v<contradiction>,
+    "fxx::meta::all: Empty case"
+);
+static_assert(
+    !all_v<std::is_signed, short, short, short, ushort>,
+    "fxx::meta::any: Regular case"
 );
 
 } } // namespace fxx::meta

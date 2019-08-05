@@ -15,71 +15,85 @@
 #define FXX_META_OP_H
 #pragma once
 
-#include <fxx/meta/detect.h>
-// fxx::meta::is_detected
+#include <fxx/cxx/is_nothrow_convertible.h>
+// std::is_nothrow_convertible
+#include <fxx/meta/tuple.h>
+// fxx::meta::(apply_t, tuple_skip_t)
 
+#include <tuple>
+// std::(tuple_element_t, tuple_size_v)
 #include <type_traits>
 // std::conjunction
 #include <utility>
 // std::declval
 
-// Helper for definting the has_xxx_op traits for an unary operator.
-#define FXX_META_OP_HAS_UNOP(name, arg)\
-template<class arg>\
-using has_op_ ## name = is_detected<name ## _t, arg>;\
-template<class arg>\
-static constexpr bool has_op_ ## name ## _v = has_op_ ## name <arg>::value;\
-template<class T, class arg>\
-using has_op_exact_ ## name = is_detected_exact<T, name ## _t, arg>;\
-template<class T, class arg>\
-static constexpr bool has_op_exact_ ## name ## _v = has_op_exact_ ## name <T, arg>::value;\
-template<class To, class arg>\
-using has_op_convertible_ ## name = is_detected_convertible<To, name ## _t, arg>;\
-template<class To, class arg>\
-static constexpr bool has_op_convertible_ ## name ## _v = has_op_convertible_ ## name <To, arg>::value;\
-template<class To, class arg>\
-using has_op_nothrow_convertible_ ## name = is_detected_nothrow_convertible<To, name ## _t, arg>;\
-template<class To, class arg>\
-static constexpr bool has_op_nothrow_convertible_ ## name ## _v = has_op_nothrow_convertible_ ## name <To, arg>::value
-
 // Helper for defining a left-sided unary operator.
 #define FXX_META_OP_UNOP_T(name, op)                                                               \
 template<class Rhs>                                                                                \
 using name ## _t = decltype(op std::declval<Rhs>());                                               \
-FXX_META_OP_HAS_UNOP(name, Rhs)
+template<class Rhs, class Enable = void>                                                           \
+struct op_ ## name : operator_base<Rhs> {};                                                        \
+template<class Rhs>                                                                                \
+struct op_ ## name <Rhs, std::void_t<name ## _t<Rhs>>>                                             \
+: operator_info<name ## _t<Rhs>, Rhs> {                                                            \
+    static constexpr bool is_nothrow = noexcept(op std::declval<Rhs>());                           \
+    constexpr auto operator()(Rhs&& rhs) noexcept(is_nothrow)                                      \
+    { return op std::forward<Rhs>(rhs); }                                                          \
+}
 
 // Helper for defining a right-sided unary operator.
 #define FXX_META_OP_UNOP2_T(name, op)                                                              \
 template<class Lhs>                                                                                \
 using name ## _t = decltype(std::declval<Lhs>() op);                                               \
-FXX_META_OP_HAS_UNOP(name, Lhs)
-
-// Helper for definting the has_xxx_op traits for a binary operator.
-#define FXX_META_OP_HAS_BINOP(name)\
-template<class Lhs, class Rhs = Lhs>\
-using has_op_ ## name = is_detected<name ## _t, Lhs, Rhs>;\
-template<class Lhs, class Rhs = Lhs>\
-static constexpr bool has_op_ ## name ## _v = has_op_ ## name <Lhs, Rhs>::value;\
-template<class T, class Lhs, class Rhs = Lhs>\
-using has_op_exact_ ## name = is_detected_exact<T, name ## _t, Lhs, Rhs>;\
-template<class T, class Lhs, class Rhs = Lhs>\
-static constexpr bool has_op_exact_ ## name ## _v = has_op_exact_ ## name <T, Lhs, Rhs>::value;\
-template<class To, class Lhs, class Rhs = Lhs>\
-using has_op_convertible_ ## name = is_detected_convertible<To, name ## _t, Lhs, Rhs>;\
-template<class To, class Lhs, class Rhs = Lhs>\
-static constexpr bool has_op_convertible_ ## name ## _v = has_op_convertible_ ## name <To, Lhs, Rhs>::value;\
-template<class To, class Lhs, class Rhs = Lhs>\
-using has_op_nothrow_convertible_ ## name = is_detected_nothrow_convertible<To, name ## _t, Lhs, Rhs>;\
-template<class To, class Lhs, class Rhs = Lhs>\
-static constexpr bool has_op_nothrow_convertible_ ## name ## _v = has_op_nothrow_convertible_ ## name <To, Lhs, Rhs>::value
+template<class Lhs, class Enable = void>                                                           \
+struct op_ ## name : operator_base<Lhs> {};                                                        \
+template<class Lhs>                                                                                \
+struct op_ ## name <Lhs, std::void_t<name ## _t<Lhs>>>                                             \
+: operator_info<name ## _t<Lhs>, Lhs> {                                                            \
+    static constexpr bool is_nothrow = noexcept(std::declval<Lhs>() op);                           \
+    constexpr auto operator()(Lhs&& lhs) noexcept(is_nothrow)                                      \
+    { return std::forward<Lhs>(lhs) op; }                                                          \
+}
 
 // Helper for defining a binary operator.
 #define FXX_META_OP_BINOP_T(name, op)                                                              \
 template<class Lhs, class Rhs = Lhs>                                                               \
 using name ## _t = decltype(std::declval<Lhs>() op std::declval<Rhs>());                           \
-FXX_META_OP_HAS_BINOP(name)
+template<class Lhs, class Rhs = Lhs, class Enable = void>                                          \
+struct op_ ## name : operator_base<Lhs, Rhs> {};                                                   \
+template<class Lhs, class Rhs>                                                                     \
+struct op_ ## name <Lhs, Rhs, std::void_t<name ## _t<Lhs, Rhs>>>                                   \
+: operator_info<name ## _t<Lhs, Rhs>, Lhs, Rhs> {                                                  \
+    static constexpr bool is_nothrow = noexcept(std::declval<Lhs>() op std::declval<Rhs>());       \
+    constexpr auto operator()(Lhs&& lhs, Rhs&& rhs) noexcept(is_nothrow)                           \
+    { return std::forward<Lhs>(lhs) op std::forward<Rhs>(rhs); }                                   \
+}
 
 namespace fxx { namespace meta {
+
+template<class... Operands>
+struct operator_base {
+    static constexpr std::size_t arity = sizeof...(Operands);
+    using operand_types = std::tuple<Operands...>;
+
+    static constexpr bool is_detected = false;
+    static constexpr bool is_nothrow = false;
+    template<class>
+    static constexpr bool is_convertible = false;
+    template<class>
+    static constexpr bool is_nothrow_convertible = false;
+};
+
+template<class Result, class... Operands>
+struct operator_info : operator_base<Operands...> {
+    using result_type = Result;
+
+    static constexpr bool is_detected = true;
+    template<class To>
+    static constexpr bool is_convertible = std::is_convertible_v<To, result_type>;
+    template<class To>
+    static constexpr bool is_nothrow_convertible = std::is_nothrow_convertible_v<To, result_type>;
+};
 
 // Arithmetic operators.
 
@@ -127,42 +141,52 @@ FXX_META_OP_UNOP_T(addr_of, &);
 // Subscript operator.
 template<class T, class Sub>
 using subscript_t = decltype(std::declval<T>()[std::declval<Sub>()]);
+
+template<class T, class Sub, class Enable = void>
+struct op_subscript : operator_base<T, Sub> {
+    using target_type = T;
+    using index_type = Sub;
+};
 template<class T, class Sub>
-using has_op_subscript = is_detected<subscript_t, T, Sub>;
-template<class T, class Sub>
-static constexpr bool has_op_subscript_v = has_op_subscript<T, Sub>::value;
-template<class To, class T, class Sub>
-using has_op_exact_subscript = is_detected_exact<To, subscript_t, T, Sub>;
-template<class To, class T, class Sub>
-static constexpr bool has_op_exact_subscript_v = has_op_exact_subscript<To, T, Sub>::value;
-template<class To, class T, class Sub>
-using has_op_convertible_subscript = is_detected_convertible<To, subscript_t, T, Sub>;
-template<class To, class T, class Sub>
-static constexpr bool has_op_convertible_subscript_v = has_op_convertible_subscript<To, T, Sub>::value;
-template<class To, class T, class Sub>
-using has_op_nothrow_convertible_subscript = is_detected_nothrow_convertible<To, subscript_t, T, Sub>;
-template<class To, class T, class Sub>
-static constexpr bool has_op_nothrow_convertible_subscript_v = has_op_nothrow_convertible_subscript<To, T, Sub>::value;
+struct op_subscript <T, Sub, std::void_t<subscript_t<T, Sub>>>
+: operator_info<subscript_t<T, Sub>, T, Sub> {
+    using target_type = T;
+    using index_type = Sub;
+
+    static constexpr bool is_nothrow = noexcept(std::declval<T>()[std::declval<Sub>()]);
+    constexpr auto operator()(T&& t, Sub&& sub) noexcept(is_nothrow)
+    { return std::forward<T>(t)[std::forward<Sub>(sub)]; }
+};
 
 // Call operator.
 template<class T, class... Args>
 using call_t = decltype(std::declval<T>()(std::declval<Args>()...));
-template<class T, class... Args>
-using has_op_call = is_detected<call_t, T, Args...>;
-template<class T, class... Args>
-static constexpr bool has_op_call_v = has_op_call<T, Args...>::value;
-template<class To, class T, class... Args>
-using has_op_exact_call = is_detected_exact<To, call_t, T, Args...>;
-template<class To, class T, class... Args>
-static constexpr bool has_op_exact_call_v = has_op_exact_call<To, T, Args...>::value;
-template<class To, class T, class... Args>
-using has_op_convertible_call = is_detected_convertible<To, call_t, T, Args...>;
-template<class To, class T, class... Args>
-static constexpr bool has_op_convertible_call_v = has_op_convertible_call<To, T, Args...>::value;
-template<class To, class T, class... Args>
-using has_op_nothrow_convertible_call = is_detected_nothrow_convertible<To, call_t, T, Args...>;
-template<class To, class T, class... Args>
-static constexpr bool has_op_nothrow_convertible_call_v = has_op_nothrow_convertible_call<To, T, Args...>::value;
+
+namespace detail {
+
+template<class Ops, class Enable = void>
+struct op_call_impl : apply_t<operator_base, Ops> {
+    using target_type = std::tuple_element_t<0, Ops>;
+    using argument_types = tuple_skip_t<1, Ops>;
+    static constexpr std::size_t argument_count = std::tuple_size_v<argument_types>;
+};
+
+template<class Target, class... Args>
+struct op_call_impl<std::tuple<Target, Args...>, call_t<Target, Args...>>
+: operator_info<op_call_impl<Target, Args...>, Target, Args...> {
+    using target_type = Target;
+    using argument_types = std::tuple<Args...>;
+    static constexpr std::size_t argument_count = sizeof...(Args);
+
+    static constexpr bool is_nothrow = noexcept(std::declval<Target>()(std::declval<Args>()...));
+    constexpr auto operator()(Target&& target, Args&&... args) noexcept(is_nothrow)
+    { return std::forward<Target>(target)(std::forward<Args>(args)...); }
+};
+
+} // namespace detail
+
+template<class Target, class... Args>
+using op_call = detail::op_call_impl<std::tuple<Target, Args...>, void>;
 
 } } // namespace fxx::meta
 

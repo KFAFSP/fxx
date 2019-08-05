@@ -15,7 +15,10 @@
 #pragma once
 
 #include <fxx/tuple/dup.h>
+#include <fxx/tuple/find.h>
+#include <fxx/tuple/first.h>
 #include <fxx/tuple/flip.h>
+#include <fxx/tuple/fold.h>
 #include <fxx/tuple/map.h>
 #include <fxx/tuple/pick.h>
 #include <fxx/tuple/reduce.h>

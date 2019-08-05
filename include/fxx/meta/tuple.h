@@ -8,11 +8,17 @@
  * @code{.unparsed}
  * Declaring:
  *
- *    make_tuple_t ... Turn a variadic parameter pack into a std::tuple type.
+ *     make_tuple_t ... Turn a variadic parameter pack into a std::tuple type.
  *
  * Consuming:
  *
- *          apply_t ... Forward std::tuple types as variadic parameters to another template.
+ *          apply_t ... Forward std::tuple types as variadic arguments to another template.
+ *    apply_partial ... Forward std::tuple types as partial variadic arguments to another template.
+ *
+ * Reasoning:
+ *
+ *          first_t ... Find the first type matching a predicate in a std::tuple.
+ *           find_t ... Find the first appearance of a type in a std::tuple.
  *
  * Restructuring:
  *
@@ -28,8 +34,7 @@
  *
  *      tuple_map_t ... Map all elements of a std::tuple type.
  *   tuple_reduce_t ... Reduce a std::tuple type.
- *    tuple_foldl_t ... Fold a std::tuple type from the left.
- *    tuple_foldr_t ... Fold a std::tuple type from the right.
+ *     tuple_fold_t ... Fold a std::tuple type from the left.
  *   tuple_filter_t ... Filter a std::tuple based on type.
  * @endcode
  *
@@ -37,7 +42,7 @@
  *
  * @author      Karl F. A. Friebel (karl.friebel@friebelnet.de)
  *
- * @version     0.3
+ * @version     0.5
  * @date        2019-06-04
  *
  * @copyright   Copyright (c) 2019
@@ -47,10 +52,13 @@
 #define FXX_META_TUPLE_H
 #pragma once
 
+#include <fxx/meta/functional.h>
+// fxx::meta::(tautology, partial_t)
+
 #include <tuple>
 // std::(tuple, tuple_element_t)
 #include <type_traits>
-// std::conditional_t
+// std::(bool_constant, conditional_t, is_same)
 
 #include <cstddef>
 // std::size_t
@@ -69,6 +77,28 @@ template<template<class...> class Target, class... Ts>
 struct apply_impl<Target, std::tuple<Ts...>> {
     using type = Target<Ts...>;
 };
+
+template<bool Value, std::size_t Offset>
+struct index_helper : std::bool_constant<Value> {
+    static constexpr std::size_t index = Offset;
+};
+
+// Dispatch case.
+template<template<class> class, std::size_t, class>
+struct first_impl {};
+
+// Abort case.
+template<template<class> class Pred, std::size_t Offset>
+struct first_impl<Pred, Offset, std::tuple<>> : index_helper<false, Offset> {};
+
+// Recursive case.
+template<template<class> class Pred, std::size_t Offset, class Head, class... Tail>
+struct first_impl<Pred, Offset, std::tuple<Head, Tail...>>
+: std::conditional_t<
+    Pred<Head>::value,
+    index_helper<true, Offset>,
+    first_impl<Pred, Offset + 1, std::tuple<Tail...>>
+> {};
 
 // Dispatch case.
 template<class...>
@@ -229,17 +259,17 @@ struct tuple_reduce_impl<Fn, 1, Tuple> {
 };
 
 // Recursion case.
-template<template<class> class Fn, std::size_t N, class Tuple>
+template<template<class> class Pred, std::size_t N, class Tuple>
 struct tuple_filter_impl {
-    using pred = typename tuple_filter_impl<Fn, N-1, Tuple>::type;
+    using pred = typename tuple_filter_impl<Pred, N-1, Tuple>::type;
     using cur = std::tuple_element_t<N-1, Tuple>;
-    using flt = std::conditional_t<Fn<cur>::value, std::tuple<cur>, std::tuple<>>;
+    using flt = std::conditional_t<Pred<cur>::value, std::tuple<cur>, std::tuple<>>;
     using type = typename tuple_cat_impl<pred, flt>::type;
 };
 
 // Abort case.
-template<template<class> class Fn, class Tuple>
-struct tuple_filter_impl<Fn, 0, Tuple> {
+template<template<class> class Pred, class Tuple>
+struct tuple_filter_impl<Pred, 0, Tuple> {
     using type = std::tuple<>;
 };
 
@@ -282,6 +312,81 @@ using make_tuple_t = std::tuple<Ts...>;
  */
 template<template<class...> class Target, class Tuple>
 using apply_t = typename detail::apply_impl<Target, Tuple>::type;
+
+/** Get a new template by partially applying a tuple of types to a template.
+ *
+ * @code{.unparsed}
+ * apply_partial<T, t>::type<U...> = T<t_0, t_1, ..., t_(N-1), U...>
+ *
+ *      where T is the target template
+ *        and t is the input tuple type
+ *        and t_i is the type of the i-th element.
+ *        and N is the size of the input tuple type
+ *        and U are the free template arguments.
+ * @endcode
+ *
+ * @warning Behavior is undefined when @p Tuple is not a std::tuple type.
+ *
+ * @tparam  Target  Target template.
+ * @tparam  Tuple   Input tuple type.
+ */
+template<template<class...> class Target, class... Ts>
+struct apply_partial {};
+template<template<class...> class Target, class... Ts>
+struct apply_partial<Target, std::tuple<Ts...>> {
+    template<class... Args>
+    using type = Target<Ts..., Args...>;
+};
+
+/** Find the first type in a std::tuple that matches a predicate.
+ *
+ * The 0-tuple never contains any matches.
+ * The tuple is searched left to right.
+ * The index at which the first matching type was found will be returned in the ::index member of
+ * the result type.
+ *
+ * @code{.unparsed}
+ * first_t<P, t>::value <=> Ex. i el. [0, N): P<t_i>::value = true; ::index = i
+ *
+ *      where P is the predicate
+ *        and t is the input tuple type
+ *        and t_i is the type of the i-th element
+ *        and N is the size of the input tuple type
+ * @endcode
+ *
+ * @warning Behavior is undefined when @p Pred instances do not provide a
+ *          `static constexpr bool value`.
+ * @warning Behavior is undefined when @p Tuple is not a std::tuple type.
+ * @warning ::index is undefined when ::value is false.
+ *
+ * @tparam  Pred    Predicate template.
+ * @tparam  Tuple   Input tuple type.
+ */
+template<template<class> class Pred, class Tuple>
+using first_t = typename detail::first_impl<Pred, 0, Tuple>;
+
+/** Get an std::bool_constant indicating whether a type is contained in an std::tuple.
+ *
+ * The 0-tuple does not contain any types.
+ * The index at which the type was found will be returned in the ::index member of the result type.
+ *
+ * @code{.unparsed}
+ * find_t<x, t>::value <=> Ex. i el. [0, N): t_i = x; ::index = i
+ *
+ *      where x is the matcher type.
+ *        and t is the input tuple type
+ *        and t_i is the type of the i-th element
+ *        and N is the size of the input tuple type
+ * @endcode
+ *
+ * @warning Behavior is undefined when @p Tuple is not a std::tuple type.
+ * @warning ::index is undefined when ::value is false.
+ *
+ * @tparam  T       Matcher type.
+ * @tparam  Tuple   Input tuple type.
+ */
+template<class T, class Tuple>
+using find_t = first_t<partial<std::is_same, T>::template type, Tuple>;
 
 /** Get the result type of concatenating std::tuples.
  *
@@ -478,10 +583,10 @@ using tuple_map_t = typename detail::tuple_map_impl<Fn, Tuple>::type;
  */
 template<template<class, class> class Fn, class Tuple>
 using tuple_reduce_t = typename detail::tuple_reduce_impl<
-        Fn,
-        std::tuple_size_v<Tuple>,
-        Tuple
-    >::type;
+    Fn,
+    std::tuple_size_v<Tuple>,
+    Tuple
+>::type;
 
 /** Get the result type of left-folding a std::tuple.
  *
@@ -491,7 +596,7 @@ using tuple_reduce_t = typename detail::tuple_reduce_impl<
  * @code{.unparsed}
  * tuple_foldl_t<Fn, I, t> = Fn<Fn<Fn<Fn<I, t_0>, t_1>, ...>, t_(N-1)>
  *
- *     where t is the input tuple type
+ *      where t is the input tuple type
  *        and N is the size of the input tuple type
  * @endcode
  *
@@ -502,51 +607,36 @@ using tuple_reduce_t = typename detail::tuple_reduce_impl<
  * @tparam  Tuple   Input tuple type.
  */
 template<template<class, class> class Fn, class Init, class Tuple>
-using tuple_foldl_t = tuple_reduce_t<Fn, tuple_cat_t<std::tuple<Init>, Tuple>>;
-
-/** Get the result type of right-folding a std::tuple.
- *
- * Right-folding is defined here as Haskell's foldl, meaning that a binary fold operation visits all
- * tuple elements from right-to-left, starting with the initialization element.
- *
- * @code{.unparsed}
- * tuple_foldr_t<Fn, I, t> = Fn<Fn<Fn<Fn<I, t_(N-1)>, ...>, t_1>, t_0>
- *
- *     where t is the input tuple type
- *        and N is the size of the input tuple type
- * @endcode
- *
- * @warning Behavior is undefined when @p Tuple is not a std::tuple type.
- *
- * @tparam  Fn      Folding template.
- * @tparam  Init    Initial type.
- * @tparam  Tuple   Input tuple type.
- */
-template<template<class, class> class Fn, class Init, class Tuple>
-using tuple_foldr_t = tuple_foldl_t<Fn, Init, tuple_flip_t<Tuple>>;
+using tuple_fold_t = tuple_reduce_t<Fn, tuple_cat_t<std::tuple<Init>, Tuple>>;
 
 /** Get the result type of filtering a std::tuple by type.
  *
- * Filtering by type is defined here as evaluating a Filter predicate to an std::bool_constant for
- * each element type and constructing a new tuple by selecting only the matching elements. The
- * 0-tuple always filters to itself.
+ * Filtering by type is defined here as evaluating a Filter predicate for each element type and
+ * constructing a new tuple by selecting only the matching elements. The 0-tuple always filters to
+ * itself.
  *
  * @code{.unparsed}
- * tuple_filter_t<Fn, t> = tuple_cat_t<F_i_0, F_i_1, >
+ * tuple_filter_t<Pred, t> = tuple_cat_t<F_i_0, F_i_1, ..., F_i_N>
+ *                   F_i_n = Pred<t_i>::value ? std::tuple<t_i> : std::tuple<>
+ *
+ *      where t is the input tuple type
+ *        and t_i is the i-th element type
+ *        and N is the size of the input tuple type
+ *        and F_i_N is the filter tuple for the i-th element
  * @endcode
  *
- * @warning Behavior is undefined when @p Fn instances do not provide a
+ * @warning Behavior is undefined when @p Pred instances do not provide a
  *          `static constexpr bool value`.
  *
- * @tparam  Fn      Predicate template std::bool_constant.
+ * @tparam  Pred    Predicate template.
  * @tparam  Tuple   Input tuple type.
  */
-template<template<class> class Fn, class Tuple>
+template<template<class> class Pred, class Tuple>
 using tuple_filter_t = typename detail::tuple_filter_impl<
-        Fn,
-        std::tuple_size_v<Tuple>,
-        Tuple
-    >::type;
+    Pred,
+    std::tuple_size_v<Tuple>,
+    Tuple
+>::type;
 
 } } // namespace fxx::meta
 
@@ -559,7 +649,7 @@ using tuple_filter_t = typename detail::tuple_filter_impl<
 #ifdef FXX_TEST_STATIC
 
 #include <type_traits>
-// std::(is_reference_v, is_same_v, remove_reference_t)
+// std::(is_reference_v, is_same_v,, is_signed_v remove_reference_t)
 
 namespace fxx { namespace meta {
 
@@ -581,6 +671,54 @@ static_assert(
 static_assert(
     apply_t<std::is_same, std::tuple<int, int>>::value,
     "fxx::meta::apply_t: Forwarding case"
+);
+
+// apply_partial_t
+static_assert(
+    std::is_same_v<
+        std::tuple<int>,
+        typename apply_partial<std::tuple, std::tuple<>>::template type<int>
+    >,
+    "fxx::meta::apply_partial_t: Empty case"
+);
+static_assert(
+    std::is_same_v<
+        std::tuple<int, int>,
+        typename apply_partial<std::tuple, std::tuple<int>>::template type<int>
+    >,
+    "fxx::meta::apply_partial_t: Forwarding case"
+);
+
+// first_t
+static_assert(
+    !first_t<tautology, std::tuple<>>::value,
+    "fxx::meta::first_t: Empty case"
+);
+static_assert(
+    first_t<tautology, std::tuple<int>>::value
+    && first_t<tautology, std::tuple<int>>::index == 0,
+    "fxx::meta::first_t: Trivial case"
+);
+static_assert(
+    first_t<std::is_signed, std::tuple<ushort, int, long>>::value
+    && first_t<std::is_signed, std::tuple<ushort, int, long>>::index == 1,
+    "fxx::meta::first_t: Recursive case"
+);
+
+// find_t
+static_assert(
+    !find_t<int, std::tuple<>>::value,
+    "fxx::meta::find_t: Empty case"
+);
+static_assert(
+    find_t<int, std::tuple<int>>::value
+    && find_t<int, std::tuple<int>>::index == 0,
+    "fxx::meta::find_t: Trivial case"
+);
+static_assert(
+    find_t<int, std::tuple<short, int, long>>::value
+    && find_t<int, std::tuple<short, int, long>>::index == 1,
+    "fxx::meta::find_t: Recursive case"
 );
 
 // tuple_cat_t
@@ -728,30 +866,17 @@ static_assert(
     "fxx::meta::tuple_reduce_t: Regular case"
 );
 
-// tuple_foldl_t
+// tuple_fold_t
 static_assert(
-    std::is_same_v<int, tuple_foldl_t<std::tuple, int, std::tuple<>>>,
-    "fxx::meta::tuple_foldl_t: Trivial case"
+    std::is_same_v<int, tuple_fold_t<std::tuple, int, std::tuple<>>>,
+    "fxx::meta::tuple_fold_t: Trivial case"
 );
 static_assert(
     std::is_same_v<
         std::tuple<std::tuple<int,int&>,int&&>,
-        tuple_foldl_t<std::tuple, int, std::tuple<int&,int&&>>
+        tuple_fold_t<std::tuple, int, std::tuple<int&,int&&>>
     >,
-    "fxx::meta::tuple_foldl_t: Regular case"
-);
-
-// tuple_foldr_t
-static_assert(
-    std::is_same_v<int, tuple_foldr_t<std::tuple, int, std::tuple<>>>,
-    "fxx::meta::tuple_foldr_t: Trivial case"
-);
-static_assert(
-    std::is_same_v<
-        std::tuple<std::tuple<int,int&>,int&&>,
-        tuple_foldr_t<std::tuple, int, std::tuple<int&&,int&>>
-    >,
-    "fxx::meta::tuple_foldr_t: Regular case"
+    "fxx::meta::tuple_fold_t: Regular case"
 );
 
 // tuple_filter_t

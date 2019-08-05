@@ -52,7 +52,7 @@ struct dup_f<0> {
 };
 /// @endcond
 
-/** Duplicate-concatenate an std::tuple.
+/** Duplicate-concatenate a std::tuple.
  *
  * @todo    Adapt documentation from fxx::meta::tuple_dup_t.
  *

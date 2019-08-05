@@ -17,8 +17,8 @@
  *
  * Reasoning:
  *
- *          first_t ... Find the first type matching a predicate in a std::tuple.
- *           find_t ... Find the first appearance of a type in a std::tuple.
+ *            first ... Find the first type matching a predicate in a std::tuple.
+ *             find ... Find the first appearance of a type in a std::tuple.
  *
  * Restructuring:
  *
@@ -346,7 +346,7 @@ struct apply_partial<Target, std::tuple<Ts...>> {
  * the result type.
  *
  * @code{.unparsed}
- * first_t<P, t>::value <=> Ex. i el. [0, N): P<t_i>::value = true; ::index = i
+ * first<P, t>::value <=> Ex. i el. [0, N): P<t_i>::value = true; ::index = i
  *
  *      where P is the predicate
  *        and t is the input tuple type
@@ -363,15 +363,15 @@ struct apply_partial<Target, std::tuple<Ts...>> {
  * @tparam  Tuple   Input tuple type.
  */
 template<template<class> class Pred, class Tuple>
-using first_t = typename detail::first_impl<Pred, 0, Tuple>;
+using first = typename detail::first_impl<Pred, 0, Tuple>;
 
-/** Get an std::bool_constant indicating whether a type is contained in an std::tuple.
+/** Get a std::bool_constant indicating whether a type is contained in a std::tuple.
  *
  * The 0-tuple does not contain any types.
  * The index at which the type was found will be returned in the ::index member of the result type.
  *
  * @code{.unparsed}
- * find_t<x, t>::value <=> Ex. i el. [0, N): t_i = x; ::index = i
+ * find<x, t>::value <=> Ex. i el. [0, N): t_i = x; ::index = i
  *
  *      where x is the matcher type.
  *        and t is the input tuple type
@@ -386,7 +386,7 @@ using first_t = typename detail::first_impl<Pred, 0, Tuple>;
  * @tparam  Tuple   Input tuple type.
  */
 template<class T, class Tuple>
-using find_t = first_t<partial<std::is_same, T>::template type, Tuple>;
+using find = first<partial<std::is_same, T>::template type, Tuple>;
 
 /** Get the result type of concatenating std::tuples.
  *
@@ -689,36 +689,36 @@ static_assert(
     "fxx::meta::apply_partial_t: Forwarding case"
 );
 
-// first_t
+// first
 static_assert(
-    !first_t<tautology, std::tuple<>>::value,
-    "fxx::meta::first_t: Empty case"
+    !first<tautology, std::tuple<>>::value,
+    "fxx::meta::first: Empty case"
 );
 static_assert(
-    first_t<tautology, std::tuple<int>>::value
-    && first_t<tautology, std::tuple<int>>::index == 0,
-    "fxx::meta::first_t: Trivial case"
+    first<tautology, std::tuple<int>>::value
+    && first<tautology, std::tuple<int>>::index == 0,
+    "fxx::meta::first: Trivial case"
 );
 static_assert(
-    first_t<std::is_signed, std::tuple<ushort, int, long>>::value
-    && first_t<std::is_signed, std::tuple<ushort, int, long>>::index == 1,
-    "fxx::meta::first_t: Recursive case"
+    first<std::is_signed, std::tuple<ushort, int, long>>::value
+    && first<std::is_signed, std::tuple<ushort, int, long>>::index == 1,
+    "fxx::meta::first: Recursive case"
 );
 
-// find_t
+// find
 static_assert(
-    !find_t<int, std::tuple<>>::value,
-    "fxx::meta::find_t: Empty case"
+    !find<int, std::tuple<>>::value,
+    "fxx::meta::find: Empty case"
 );
 static_assert(
-    find_t<int, std::tuple<int>>::value
-    && find_t<int, std::tuple<int>>::index == 0,
-    "fxx::meta::find_t: Trivial case"
+    find<int, std::tuple<int>>::value
+    && find<int, std::tuple<int>>::index == 0,
+    "fxx::meta::find: Trivial case"
 );
 static_assert(
-    find_t<int, std::tuple<short, int, long>>::value
-    && find_t<int, std::tuple<short, int, long>>::index == 1,
-    "fxx::meta::find_t: Recursive case"
+    find<int, std::tuple<short, int, long>>::value
+    && find<int, std::tuple<short, int, long>>::index == 1,
+    "fxx::meta::find: Recursive case"
 );
 
 // tuple_cat_t

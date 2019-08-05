@@ -43,7 +43,7 @@ struct flip_f {
     }
 };
 
-/** Flip (reverse the element order of) an std::tuple.
+/** Flip (reverse the element order of) a std::tuple.
  *
  * @todo    Adapt documentation from fxx::meta::tuple_flip_t.
  *

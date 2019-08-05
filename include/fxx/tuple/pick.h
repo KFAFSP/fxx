@@ -23,7 +23,7 @@
 
 namespace fxx { namespace tuple {
 
-/** Functor for picking from an std::tuple.
+/** Functor for picking from a std::tuple.
  *
  * @todo    Adapt documentation from fxx::meta::tuple_pick_t.
  *
@@ -58,7 +58,7 @@ struct pick_f<> {
 };
 /// @endcond
 
-/** Pick elements from an std::tuple.
+/** Pick elements from a std::tuple.
  *
  * @todo    Adapt documentation from fxx::meta::tuple_pick_t.
  *

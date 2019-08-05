@@ -7,7 +7,10 @@ add_executable(fxx-test
     src/meta.cpp
 
     src/tuple/dup.cpp
+    src/tuple/find.cpp
+    src/tuple/first.cpp
     src/tuple/flip.cpp
+    src/tuple/fold.cpp
     src/tuple/map.cpp
     src/tuple/pick.cpp
     src/tuple/reduce.cpp

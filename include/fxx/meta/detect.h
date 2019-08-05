@@ -51,7 +51,7 @@ struct detect_impl<Default, std::void_t<Op<Args...>>, Op, Args...> {
 
 } // namespace detail
 
-/** An std::bool_constant indicating whether a template instantiation is valid.
+/** A std::bool_constant indicating whether a template instantiation is valid.
  *
  * Can be used to detect whether certain expressions are valid by use of a template alias that
  * evaluates to the expression's decltype.
@@ -101,7 +101,7 @@ using detected_or_t = typename detail::detect_impl<Default, void, Op, Args...>::
 template <template<class...> class Op, class... Args>
 using detected_t = detected_or_t<detail::nonesuch, Op, Args...>;
 
-/** An std::bool_constant indicating whether a template instantiation is valid and evaluates to the
+/** A std::bool_constant indicating whether a template instantiation is valid and evaluates to the
  * given type.
  *
  * See std::is_same and detected_t for more details.
@@ -125,7 +125,7 @@ using is_detected_exact = std::is_same<detected_t<Op, Args...>, T>;
 template<class T, template<class...> class Op, class... Args>
 static constexpr bool is_detected_exact_v = is_detected_exact<T, Op, Args...>::value;
 
-/** An std::bool_constant indicating whether a template instantiation is valid and evalutes to a
+/** A std::bool_constant indicating whether a template instantiation is valid and evalutes to a
  * type that is convertible to the given type.
  *
  * See std::is_convertible and detected_t for more details.
@@ -149,7 +149,7 @@ using is_detected_convertible = std::is_convertible<detected_t<Op, Args...>, To>
 template<class To, template<class...> class Op, class... Args>
 static constexpr bool is_detected_convertible_v = is_detected_convertible<To, Op, Args...>::value;
 
-/** An std::bool_constant indicating whether a template instantiation is valid and evalutes to a
+/** A std::bool_constant indicating whether a template instantiation is valid and evalutes to a
  * type that is nothrow convertible to the given type.
  *
  * See std::is_nothrow_convertible and detected_t for more details.

@@ -46,7 +46,7 @@ struct is_nothrow_convertible_impl<From, To, false>
 
 } // namespace detail
 
-/** An std::bool_constant that indicates whether a non-throwing conversion exists between types.
+/** A std::bool_constant indicating whether a non-throwing conversion exists between types.
  *
  * Extends the is_convertible trait with a test that checks whether the conversion expression is
  * noexcept qualified.
